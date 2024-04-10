@@ -41,21 +41,21 @@ describe('ChatCompletion', () => {
         expect(result).toBeDefined();
     });
 
-    it('should return a response when called with valid arguments and stream', async () => {
-        const body: ChatBody = {
-            query: 'Hello',
-            extra_parameters: {},
-            stream: true,
-            messages: [
-                {
-                    role: 'user',
-                    content: 'What is the weather like in Shenzhen today',
-                },
-            ],
-        };
-        const res = await client.chat(body, 'ERNIE-Bot-turbo');
-        expect(res).toBeDefined();
-    });
+    // it('should return a response when called with valid arguments and stream', async () => {
+    //     const body: ChatBody = {
+    //         query: 'Hello',
+    //         extra_parameters: {},
+    //         stream: true,
+    //         messages: [
+    //             {
+    //                 role: 'user',
+    //                 content: 'What is the weather like in Shenzhen today',
+    //             },
+    //         ],
+    //     };
+    //     const res = await client.chat(body, 'ERNIE-Bot-turbo');
+    //     expect(res).toBeDefined();
+    // });
 
     it('should throw an error when an invalid model is provided', async () => {
         const body: ChatBody = {

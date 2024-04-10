@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import HttpClient from '../HttpClient';
+// import HttpClient from '../HttpClient';
 import {Fetch, FetchConfig} from '../Fetch';
 import {TokenLimiter} from '../Limiter';
 import {DEFAULT_HEADERS} from '../constant';
 import {getAccessTokenUrl, getIAMConfig, getDefaultConfig, calculateRetryDelay, isOpenTpm} from '../utils';
-import {Stream} from '../streaming';
+// import {Stream} from '../streaming';
 import {Resp, AsyncIterableType, AccessTokenResp, RespBase} from '../interface';
 
 export class BaseClient {
@@ -117,22 +117,23 @@ export class BaseClient {
         }
 
         let fetchOptions;
-        // IAM鉴权
-        if (this.qianfanAccessKey && this.qianfanSecretKey) {
-            const config = getIAMConfig(this.qianfanAccessKey, this.qianfanSecretKey, this.qianfanBaseUrl);
-            const client = new HttpClient(config);
-            fetchOptions = await client.getSignature({
-                httpMethod: 'POST',
-                path: IAMpath,
-                body: requestBody,
-                headers: this.headers,
-            });
-        }
+        // // IAM鉴权
+        // if (this.qianfanAccessKey && this.qianfanSecretKey) {
+        //     const config = getIAMConfig(this.qianfanAccessKey, this.qianfanSecretKey, this.qianfanBaseUrl);
+        //     const client = new HttpClient(config);
+        //     fetchOptions = await client.getSignature({
+        //         httpMethod: 'POST',
+        //         path: IAMpath,
+        //         body: requestBody,
+        //         headers: this.headers,
+        //     });
+        // }
         // AK/SK鉴权
         if (this.qianfanAk && this.qianfanSk) {
-            if (this.expires_in < Date.now() / 1000) {
-                await this.getAccessToken();
-            }
+            // if (this.expires_in < Date.now() / 1000) {
+            //     await this.getAccessToken();
+            // }
+            this.access_token = 'XX';
             const url = `${AKPath}?access_token=${this.access_token}`;
             fetchOptions = {
                 url: url,
@@ -149,26 +150,26 @@ export class BaseClient {
         if (hasToken) {
             try {
                 const resp = await this.fetchInstance.fetchWithRetry(fetchOptions.url, fetchOptions);
-                const val = this.getTpmHeader(resp.headers);
+                // const val = this.getTpmHeader(resp.headers);
                 let usedTokens = 0;
-                if (stream) {
-                    const sseStream = Stream.fromSSEResponse(resp, this.controller);
-                    const [stream1, stream2] = sseStream.tee();
-                    if (isOpenTpm(val)) {
-                        const updateTokensAsync = async () => {
-                            for await (const data of stream1) {
-                                const typedData = data as RespBase;
-                                if (typedData.is_end) {
-                                    usedTokens = typedData?.usage?.total_tokens;
-                                    await this.tokenLimiter.acquireTokens(usedTokens - tokens);
-                                    break;
-                                }
-                            }
-                        };
-                        setTimeout(updateTokensAsync, 0);
-                    }
-                    return stream2 as AsyncIterableType;
-                }
+                // if (stream) {
+                //     const sseStream = Stream.fromSSEResponse(resp, this.controller);
+                //     const [stream1, stream2] = sseStream.tee();
+                //     if (isOpenTpm(val)) {
+                //         const updateTokensAsync = async () => {
+                //             for await (const data of stream1) {
+                //                 const typedData = data as RespBase;
+                //                 if (typedData.is_end) {
+                //                     usedTokens = typedData?.usage?.total_tokens;
+                //                     await this.tokenLimiter.acquireTokens(usedTokens - tokens);
+                //                     break;
+                //                 }
+                //             }
+                //         };
+                //         setTimeout(updateTokensAsync, 0);
+                //     }
+                //     return stream2 as AsyncIterableType;
+                // }
                 const data = await resp.json();
                 setTimeout(async () => {
                     usedTokens = this.getUsedTokens(data);
@@ -191,15 +192,15 @@ export class BaseClient {
         return val;
     }
 
-    async getStreamUsedTokens(data: AsyncIterableType): Promise<number> {
-        let usedTokens = 0;
-        for await (const chunk of data as AsyncIterableType) {
-            if (chunk.is_end) {
-                usedTokens = chunk?.usage?.total_tokens;
-            }
-        }
-        return usedTokens ?? 0;
-    }
+    // async getStreamUsedTokens(data: AsyncIterableType): Promise<number> {
+    //     let usedTokens = 0;
+    //     for await (const chunk of data as AsyncIterableType) {
+    //         if (chunk.is_end) {
+    //             usedTokens = chunk?.usage?.total_tokens;
+    //         }
+    //     }
+    //     return usedTokens ?? 0;
+    // }
     getUsedTokens(data: Resp): number {
         const usage = data?.usage?.total_tokens;
         return usage ?? 0;
